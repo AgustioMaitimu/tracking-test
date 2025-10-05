@@ -8,12 +8,7 @@
 import Foundation
 import CoreMotion
 import Combine
-
-struct ActivityEvent: Identifiable {
-    let id = UUID()
-    let status: String
-    let timestamp: Date
-}
+import SwiftData
 
 class ActivityMonitor: NSObject, ObservableObject {
     private let activityManager = CMMotionActivityManager()
@@ -21,7 +16,8 @@ class ActivityMonitor: NSObject, ObservableObject {
     @Published var currentStatus: String = "Unknown"
     @Published var authStatus: CMAuthorizationStatus = CMMotionActivityManager.authorizationStatus()
     @Published var isMonitoring: Bool = false
-    @Published var activities: [ActivityEvent] = []
+	
+	var modelContext: ModelContext?
 
 	var authorizationStatusText: String {
 		switch authStatus {
@@ -71,17 +67,13 @@ class ActivityMonitor: NSObject, ObservableObject {
             }
 
             let event = ActivityEvent(status: self.currentStatus, timestamp: a.startDate)
-            self.activities.append(event)
+			self.modelContext?.insert(event)
         }
     }
     
     func stopUpdates() {
         activityManager.stopActivityUpdates()
         isMonitoring = false
-    }
-
-    func clearActivities() {
-        activities.removeAll()
     }
 
 	func refreshAuthorizationStatus() {

@@ -6,25 +6,22 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct ActivitiesListView: View {
-    @ObservedObject var activityMonitor: ActivityMonitor
-
-    var body: some View {
-        // newest first
-        let items = Array(activityMonitor.activities.reversed())
-        List(Array(items.enumerated()), id: \.element.id) { idx, event in
-            HStack(spacing: 12) {
-                Text("#\(idx + 1)")
-                    .foregroundStyle(.secondary)
-                Text(format(date: event.timestamp))
-                    .fontDesign(.monospaced)
-                Text(event.status)
-                Spacer()
-            }
-        }
-        .navigationTitle("Activities")
-    }
+	@Query(sort: \ActivityEvent.timestamp, order: .reverse) private var activities: [ActivityEvent]
+	
+	var body: some View {
+		List(activities) { event in
+			HStack(spacing: 12) {
+				Text(format(date: event.timestamp))
+					.fontDesign(.monospaced)
+				Text(event.status)
+				Spacer()
+			}
+		}
+		.navigationTitle("Activities")
+	}
 
     private func format(date: Date) -> String {
         let df = DateFormatter()
@@ -33,6 +30,6 @@ struct ActivitiesListView: View {
     }
 }
 
-#Preview {
-    ActivitiesListView(activityMonitor: ActivityMonitor())
-}
+//#Preview {
+//    ActivitiesListView(activityMonitor: ActivityMonitor())
+//}

@@ -7,10 +7,14 @@
 
 import SwiftUI
 import CoreLocation
+import SwiftData
 
 struct DebuggingView: View {
+	@Environment(\.modelContext) private var modelContext
 	@StateObject private var locationManager = LocationManager()
 	@StateObject private var activityMonitor = ActivityMonitor()
+	@Query private var locationPoints: [LocationPoint]
+	@Query private var activities: [ActivityEvent]
 	
 	var body: some View {
 		NavigationStack {
@@ -56,7 +60,7 @@ struct DebuggingView: View {
 					}
 				}
 				
-				if let last = locationManager.locations.last {
+				if let last = locationPoints.last {
 					Text("Loc: \(last.latitude), \(last.longitude)")
 				} else {
 					Text("No Locs yet")
@@ -64,31 +68,42 @@ struct DebuggingView: View {
 				
 				Text("Act: \(activityMonitor.currentStatus)")
 				
-				NavigationLink("Loc Points: \(locationManager.locations.count)") {
-					LocationPointsListView(locationManager: locationManager)
+				HStack {
+					NavigationLink("Loc Points: \(locationPoints.count)") {
+						LocationPointsListView()
+					}
+					
+					Button("Clear Locs") {
+						for point in locationPoints {
+							modelContext.delete(point)
+						}
+					}
 				}
 				
-				NavigationLink("Activities: \(activityMonitor.activities.count)") {
-					ActivitiesListView(activityMonitor: activityMonitor)
-				}
-				
-				Button("Clear Locs") {
-					locationManager.clearLocations()
-				}
-
-				Button("Clear Activities") {
-					activityMonitor.clearActivities()
+				HStack {
+					NavigationLink("Activities: \(activities.count)") {
+						ActivitiesListView()
+					}
+					
+					Button("Clear Activities") {
+						for activity in activities {
+							modelContext.delete(activity)
+						}
+					}
 				}
 				
 				Button("Always Permission") {
 					locationManager.requestAlwaysAuthorization()
 				}
+				.disabled(locationManager.authorizationStatusText == "Always" ? true : false)
 			}
 			.padding()
 			.navigationTitle("Debugging")
 		}
 		.onAppear {
 			activityMonitor.refreshAuthorizationStatus()
+			locationManager.modelContext = modelContext
+			activityMonitor.modelContext = modelContext
 		}
 	}
 }

@@ -8,15 +8,17 @@
 import Foundation
 import CoreLocation
 import Combine
+import SwiftData
 
 @MainActor
 class LocationManager: NSObject, CLLocationManagerDelegate, ObservableObject {
-    @Published var locations: [CLLocationCoordinate2D] = []
     @Published var isMonitoringSLC: Bool = false
     @Published var isUpdatingLocation: Bool = false
     @Published var authStatus: CLAuthorizationStatus = .notDetermined
 
     private let locationManager = CLLocationManager()
+	
+	var modelContext: ModelContext?
 
     override init() {
         super.init()
@@ -85,14 +87,14 @@ class LocationManager: NSObject, CLLocationManagerDelegate, ObservableObject {
 		self.isUpdatingLocation = false
 	}
 
-    func clearLocations() {
-        self.locations.removeAll()
-    }
-
-    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        guard let location = locations.last else { return }
-        self.locations.append(location.coordinate)
-    }
+	func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+		guard let location = locations.last else { return }
+		
+		let newLocationPoint = LocationPoint(latitude: location.coordinate.latitude,
+											 longitude: location.coordinate.longitude,
+											 timestamp: Date())
+		modelContext?.insert(newLocationPoint)
+	}
 
 	func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
 		print("Location manager error: \(error.localizedDescription)")

@@ -7,30 +7,29 @@
 
 import SwiftUI
 import CoreLocation
+import SwiftData
 
 struct LocationPointsListView: View {
-    @ObservedObject var locationManager: LocationManager
-
-    var body: some View {
-        // newest first
-        let coords = Array(locationManager.locations.reversed())
-        List(Array(coords.enumerated()), id: \.offset) { idx, coord in
-            HStack(spacing: 12) {
-                Text("#\(idx + 1)")
-                    .foregroundStyle(.secondary)
-                Text("\(format(coord.latitude)), \(format(coord.longitude))")
-                    .fontDesign(.monospaced)
-                Spacer()
-            }
-        }
-        .navigationTitle("Location Points")
-    }
-
-    private func format(_ value: CLLocationDegrees) -> String {
-        String(format: "%.6f", value)
-    }
+	@Query(sort: \LocationPoint.timestamp, order: .reverse) private var locationPoints: [LocationPoint]
+	
+	var body: some View {
+		List(locationPoints) { point in
+			HStack(spacing: 12) {
+				Text(point.timestamp, style: .time)
+					.foregroundStyle(.secondary)
+				Text("\(format(point.latitude)), \(format(point.longitude))")
+					.fontDesign(.monospaced)
+				Spacer()
+			}
+		}
+		.navigationTitle("Location Points")
+	}
+	
+	private func format(_ value: CLLocationDegrees) -> String {
+		String(format: "%.6f", value)
+	}
 }
 
-#Preview {
-    LocationPointsListView(locationManager: LocationManager())
-}
+//#Preview {
+//	LocationPointsListView(locationManager: LocationManager())
+//}
