@@ -29,7 +29,3 @@ struct LocationPointsListView: View {
 		String(format: "%.6f", value)
 	}
 }
-
-//#Preview {
-//	LocationPointsListView(locationManager: LocationManager())
-//}

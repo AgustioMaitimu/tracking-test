@@ -270,9 +270,9 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = tracking/Info.plist;
-				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "Need For Tracking";
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Need For Tracking";
-				INFOPLIST_KEY_NSMotionUsageDescription = "Need For Tracking";
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "Location is used to continue recording your path in the background for accurate tracking.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Location is used to show your path on the map and record tracking while the app is in use.";
+				INFOPLIST_KEY_NSMotionUsageDescription = "Activity data is used to monitor motion (walking, running, driving).";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -306,9 +306,9 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = tracking/Info.plist;
-				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "Need For Tracking";
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Need For Tracking";
-				INFOPLIST_KEY_NSMotionUsageDescription = "Need For Tracking";
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "Location is used to continue recording your path in the background for accurate tracking.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Location is used to show your path on the map and record tracking while the app is in use.";
+				INFOPLIST_KEY_NSMotionUsageDescription = "Activity data is used to monitor motion (walking, running, driving).";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

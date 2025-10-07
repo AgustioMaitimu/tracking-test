@@ -11,8 +11,9 @@ import SwiftData
 
 struct DebuggingView: View {
 	@Environment(\.modelContext) private var modelContext
-	@StateObject private var locationManager = LocationManager()
-	@StateObject private var activityMonitor = ActivityMonitor()
+	// Use @ObservedObject for managers passed from a parent view
+	@ObservedObject var locationManager: LocationManager
+	@ObservedObject var activityMonitor: ActivityMonitor
 	@Query private var locationPoints: [LocationPoint]
 	@Query private var activities: [ActivityEvent]
 	
@@ -110,6 +111,6 @@ struct DebuggingView: View {
 
 
 
-#Preview {
-	DebuggingView()
-}
+//#Preview {
+//	DebuggingView()
+//}

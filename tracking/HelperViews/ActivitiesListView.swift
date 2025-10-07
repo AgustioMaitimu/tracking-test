@@ -22,14 +22,10 @@ struct ActivitiesListView: View {
 		}
 		.navigationTitle("Activities")
 	}
-
-    private func format(date: Date) -> String {
-        let df = DateFormatter()
-        df.dateFormat = "yyyy-MM-dd HH:mm:ss"
-        return df.string(from: date)
-    }
+	
+	private func format(date: Date) -> String {
+		let df = DateFormatter()
+		df.dateFormat = "yyyy-MM-dd HH:mm:ss"
+		return df.string(from: date)
+	}
 }
-
-//#Preview {
-//    ActivitiesListView(activityMonitor: ActivityMonitor())
-//}

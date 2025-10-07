@@ -10,10 +10,23 @@ import SwiftData
 
 @main
 struct trackingApp: App {
-    var body: some Scene {
-        WindowGroup {
-            ContentView()
-        }
-		.modelContainer(for: [LocationPoint.self, ActivityEvent.self])
-    }
+	@UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+	
+	let container: ModelContainer
+	
+	init() {
+		do {
+			container = try ModelContainer(for: LocationPoint.self, ActivityEvent.self)
+			AppDelegate.container = container
+		} catch {
+			fatalError("Failed to create ModelContainer for the app.")
+		}
+	}
+	
+	var body: some Scene {
+		WindowGroup {
+			ContentView()
+		}
+		.modelContainer(container)
+	}
 }
