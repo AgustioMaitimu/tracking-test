@@ -8,13 +8,12 @@
 import SwiftUI
 
 struct ContentView: View {
-	// Create a single instance of each manager here
-	@StateObject private var locationManager = LocationManager()
+	// Use @ObservedObject for managers passed from a parent
+	@ObservedObject var locationManager: LocationManager
 	@StateObject private var activityMonitor = ActivityMonitor()
 	
 	var body: some View {
 		TabView {
-			// Pass the same instances into your child views
 			TrackingView(locationManager: locationManager)
 				.tabItem {
 					Label("Tracking", systemImage: "map")
@@ -29,8 +28,4 @@ struct ContentView: View {
 			locationManager.requestInitialAuthorization()
 		}
 	}
-}
-
-#Preview {
-	ContentView()
 }

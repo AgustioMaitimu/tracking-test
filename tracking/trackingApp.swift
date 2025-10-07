@@ -25,7 +25,8 @@ struct trackingApp: App {
 	
 	var body: some Scene {
 		WindowGroup {
-			ContentView()
+			// Pass the single locationManager instance from the appDelegate
+			ContentView(locationManager: appDelegate.locationManager)
 		}
 		.modelContainer(container)
 	}
