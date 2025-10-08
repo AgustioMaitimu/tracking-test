@@ -17,7 +17,6 @@ struct trackingApp: App {
 	init() {
 		do {
 			container = try ModelContainer(for: LocationPoint.self, ActivityEvent.self)
-			AppDelegate.container = container
 		} catch {
 			fatalError("Failed to create ModelContainer for the app.")
 		}
