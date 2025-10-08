@@ -11,6 +11,8 @@ import Combine
 import SwiftData
 
 class ActivityMonitor: NSObject, ObservableObject {
+	static let shared = ActivityMonitor() // Singleton instance
+	
 	private let activityManager = CMMotionActivityManager()
 	
 	@Published var currentStatus: String = "Unknown"

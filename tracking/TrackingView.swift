@@ -65,7 +65,7 @@ struct TrackingView: View {
 					
 					Spacer()
 					
-					let isTracking = locationManager.isMonitoringSLC || locationManager.isUpdatingLocation
+					let isTracking = locationManager.isMonitoringGeofence || locationManager.isUpdatingLocation
 					Button(action: toggleTracking) {
 						Text(isTracking ? "Stop Tracking" : "Start Tracking")
 							.font(.headline.bold())
@@ -83,8 +83,8 @@ struct TrackingView: View {
 		.onAppear {
 			locationManager.modelContext = modelContext
 			if UserDefaults.standard.bool(forKey: "isTrackingEnabled") {
-				if !locationManager.isMonitoringSLC && !locationManager.isUpdatingLocation {
-					locationManager.startSLC()
+				if !locationManager.isMonitoringGeofence && !locationManager.isUpdatingLocation {
+					locationManager.startGeofenceMonitoring()
 				}
 			}
 		}
@@ -92,13 +92,13 @@ struct TrackingView: View {
 	}
 	
 	private func toggleTracking() {
-		let isTracking = locationManager.isMonitoringSLC || locationManager.isUpdatingLocation
+		let isTracking = locationManager.isMonitoringGeofence || locationManager.isUpdatingLocation
 		if isTracking {
 			UserDefaults.standard.set(false, forKey: "isTrackingEnabled")
 			locationManager.stopLocationUpdate()
 		} else {
 			UserDefaults.standard.set(true, forKey: "isTrackingEnabled")
-			locationManager.startSLC()
+			locationManager.startGeofenceMonitoring()
 		}
 	}
 	

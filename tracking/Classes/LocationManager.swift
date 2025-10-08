@@ -16,11 +16,13 @@ class LocationManager: NSObject, CLLocationManagerDelegate, ObservableObject {
 	
 	@Published var isMonitoringSLC: Bool = false
 	@Published var isUpdatingLocation: Bool = false
+	@Published var isMonitoringGeofence: Bool = false
 	@Published var authStatus: CLAuthorizationStatus = .notDetermined
 	
 	private let locationManager = CLLocationManager()
-	private var slcStartTime: Date?
 	var modelContext: ModelContext?
+	
+	private let geofenceRegionIdentifier = "user_geofence"
 	
 	private override init() {
 		super.init()
@@ -59,23 +61,52 @@ class LocationManager: NSObject, CLLocationManagerDelegate, ObservableObject {
 		locationManager.requestAlwaysAuthorization()
 	}
 	
-	func startSLC() {
-		if CLLocationManager.significantLocationChangeMonitoringAvailable() {
-			print("Starting significant location change monitoring.")
-			slcStartTime = Date() // Set debounce timer
-			locationManager.startMonitoringSignificantLocationChanges()
-			self.isMonitoringSLC = true
-		} else {
-			self.isMonitoringSLC = false
-			print("Significant location monitoring is not available on this device.")
+	// --- Geofencing Methods ---
+	
+	func startGeofenceMonitoring() {
+		guard authStatus == .authorizedAlways else {
+			print("Cannot start geofence monitoring without 'Always' authorization.")
+			return
 		}
+		
+		guard CLLocationManager.isMonitoringAvailable(for: CLCircularRegion.self) else {
+			print("Geofencing is not supported on this device.")
+			return
+		}
+		
+		print("Starting geofence monitoring.")
+		isMonitoringGeofence = true
+		locationManager.requestLocation() // Get a single location to set the first geofence
 	}
 	
-	func stopSLC() {
-		print("Stopping significant location change monitoring.")
-		locationManager.stopMonitoringSignificantLocationChanges()
-		self.isMonitoringSLC = false
+	func stopGeofenceMonitoring() {
+		print("Stopping geofence monitoring.")
+		// We need a region to stop monitoring, even a dummy one with the correct identifier
+		let region = CLCircularRegion(center: CLLocationCoordinate2D(latitude: 0, longitude: 0), radius: 100, identifier: geofenceRegionIdentifier)
+		locationManager.stopMonitoring(for: region)
+		isMonitoringGeofence = false
 	}
+	
+	private func setupGeofence(around location: CLLocation) {
+		// First, remove the old geofence to ensure we only have one active
+		for region in locationManager.monitoredRegions {
+			if region.identifier == geofenceRegionIdentifier {
+				locationManager.stopMonitoring(for: region)
+			}
+		}
+		
+		// Now, create and start monitoring the new one
+		let geofenceRegion = CLCircularRegion(center: location.coordinate,
+											  radius: 100, // 100 meters radius
+											  identifier: geofenceRegionIdentifier)
+		geofenceRegion.notifyOnExit = true
+		geofenceRegion.notifyOnEntry = false
+		
+		locationManager.startMonitoring(for: geofenceRegion)
+		print("Created new geofence around \(location.coordinate.latitude), \(location.coordinate.longitude)")
+	}
+	
+	// --- High-Frequency Update Methods ---
 	
 	func startLocationUpdate() {
 		print("Starting high-frequency updates.")
@@ -88,36 +119,44 @@ class LocationManager: NSObject, CLLocationManagerDelegate, ObservableObject {
 	func stopLocationUpdate() {
 		print("Stopping all location services.")
 		locationManager.stopUpdatingLocation()
-		locationManager.stopMonitoringSignificantLocationChanges()
+		stopGeofenceMonitoring()
 		self.isUpdatingLocation = false
-		self.isMonitoringSLC = false
-		slcStartTime = nil
 	}
+	
+	// --- CLLocationManagerDelegate Methods ---
 	
 	func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
 		guard let location = locations.last else { return }
 		
-		if let slcStartTime = slcStartTime {
-			if Date().timeIntervalSince(slcStartTime) < 2.0 {
-				print("Ignoring immediate SLC trigger.")
-				self.slcStartTime = nil
-				return
+		// This is the initial location for setting up the first geofence
+		if isMonitoringGeofence && !isUpdatingLocation {
+			setupGeofence(around: location)
+		}
+		
+		if isUpdatingLocation {
+			print("Received location update: \(location.coordinate.latitude), \(location.coordinate.longitude)")
+			let point = LocationPoint(latitude: location.coordinate.latitude,
+									  longitude: location.coordinate.longitude,
+									  timestamp: Date())
+			modelContext?.insert(point)
+			
+			// --- THIS IS THE FIX ---
+			// Explicitly save the context to ensure data is persisted when
+			// the app is running in the background.
+			do {
+				try modelContext?.save()
+				print("Successfully saved location point.")
+			} catch {
+				print("Failed to save location point: \(error.localizedDescription)")
 			}
-			self.slcStartTime = nil
+			// --- END FIX ---
 		}
-		
-		//dis shit gets called from SLC trigger, hopefully, God help me please, im hanging on by a thread
-		if isMonitoringSLC {
-			print("SLC triggered, switching to high-frequency updates.")
-			startLocationUpdate()
-			stopSLC()
-		}
-		
-		print("Received location update: \(location.coordinate.latitude), \(location.coordinate.longitude)")
-		let point = LocationPoint(latitude: location.coordinate.latitude,
-								  longitude: location.coordinate.longitude,
-								  timestamp: Date())
-		modelContext?.insert(point)
+	}
+	
+	func locationManager(_ manager: CLLocationManager, didExitRegion region: CLRegion) {
+		print("Exited geofence region. Switching to high-frequency updates.")
+		stopGeofenceMonitoring()
+		startLocationUpdate()
 	}
 	
 	func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
@@ -126,5 +165,9 @@ class LocationManager: NSObject, CLLocationManagerDelegate, ObservableObject {
 	
 	func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
 		self.authStatus = manager.authorizationStatus
+	}
+	
+	func locationManager(_ manager: CLLocationManager, monitoringDidFailFor region: CLRegion?, withError error: Error) {
+		print("Geofence monitoring failed for region \(region?.identifier ?? "unknown"): \(error.localizedDescription)")
 	}
 }

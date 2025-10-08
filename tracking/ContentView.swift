@@ -18,7 +18,7 @@ struct ContentView: View {
 					Label("Tracking", systemImage: "map")
 				}
 			
-			DebuggingView(activityMonitor: activityMonitor)
+			DebuggingView()
 				.tabItem {
 					Label("Debugging", systemImage: "command")
 				}

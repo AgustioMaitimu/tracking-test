@@ -12,7 +12,7 @@ import SwiftData
 struct DebuggingView: View {
 	@Environment(\.modelContext) private var modelContext
 	@StateObject private var locationManager = LocationManager.shared
-	@ObservedObject var activityMonitor: ActivityMonitor
+	@StateObject private var activityMonitor = ActivityMonitor.shared // Use shared instance
 	@Query private var locationPoints: [LocationPoint]
 	@Query private var activities: [ActivityEvent]
 	
@@ -25,14 +25,14 @@ struct DebuggingView: View {
 				}
 				
 				HStack {
-					Text("SLC: \(locationManager.isMonitoringSLC ? "On" : "Off")")
+					Text("GeoFence: \(locationManager.isMonitoringGeofence ? "On" : "Off")")
 					Text("LocUpdt: \(locationManager.isUpdatingLocation ? "On" : "Off")")
 					Text("ActMon: \(activityMonitor.isMonitoring ? "On" : "Off")")
 				}
 				
 				HStack {
-					Button("SLC On") { locationManager.startSLC() }
-					Button("SLC Off") { locationManager.stopSLC() }
+					Button("GeoFence On") { locationManager.startGeofenceMonitoring() }
+					Button("GeoFence Off") { locationManager.stopGeofenceMonitoring() }
 				}
 				
 				HStack {
@@ -58,7 +58,13 @@ struct DebuggingView: View {
 						LocationPointsListView()
 					}
 					Button("Clear Locs") {
-						try? modelContext.delete(model: LocationPoint.self)
+						do {
+							try modelContext.delete(model: LocationPoint.self)
+							try modelContext.save() // Explicitly save the context
+							print("Successfully deleted all location points.")
+						} catch {
+							print("Failed to delete location points: \(error.localizedDescription)")
+						}
 					}
 				}
 				
@@ -67,7 +73,13 @@ struct DebuggingView: View {
 						ActivitiesListView()
 					}
 					Button("Clear Activities") {
-						try? modelContext.delete(model: ActivityEvent.self)
+						do {
+							try modelContext.delete(model: ActivityEvent.self)
+							try modelContext.save()
+							print("Successfully deleted all activity events.")
+						} catch {
+							print("Failed to delete activity events: \(error.localizedDescription)")
+						}
 					}
 				}
 				
