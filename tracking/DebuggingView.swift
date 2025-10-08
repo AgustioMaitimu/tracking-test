@@ -11,8 +11,7 @@ import SwiftData
 
 struct DebuggingView: View {
 	@Environment(\.modelContext) private var modelContext
-	// Use @ObservedObject for managers passed from a parent view
-	@ObservedObject var locationManager: LocationManager
+	@StateObject private var locationManager = LocationManager.shared
 	@ObservedObject var activityMonitor: ActivityMonitor
 	@Query private var locationPoints: [LocationPoint]
 	@Query private var activities: [ActivityEvent]
@@ -32,33 +31,18 @@ struct DebuggingView: View {
 				}
 				
 				HStack {
-					Button("SLC On") {
-						locationManager.startSLC()
-					}
-					
-					Button("SLC Off") {
-						locationManager.stopSLC()
-					}
+					Button("SLC On") { locationManager.startSLC() }
+					Button("SLC Off") { locationManager.stopSLC() }
 				}
 				
 				HStack {
-					Button("LocUpdt On") {
-						locationManager.startLocationUpdate()
-					}
-					
-					Button("LocUpdt Off") {
-						locationManager.stopLocationUpdate()
-					}
+					Button("LocUpdt On") { locationManager.startLocationUpdate() }
+					Button("LocUpdt Off") { locationManager.stopLocationUpdate() }
 				}
 				
 				HStack {
-					Button("ActMon On") {
-						activityMonitor.startUpdates()
-					}
-					
-					Button("ActMon Off") {
-						activityMonitor.stopUpdates()
-					}
+					Button("ActMon On") { activityMonitor.startUpdates() }
+					Button("ActMon Off") { activityMonitor.stopUpdates() }
 				}
 				
 				if let last = locationPoints.last {
@@ -73,11 +57,8 @@ struct DebuggingView: View {
 					NavigationLink("Loc Points: \(locationPoints.count)") {
 						LocationPointsListView()
 					}
-					
 					Button("Clear Locs") {
-						for point in locationPoints {
-							modelContext.delete(point)
-						}
+						try? modelContext.delete(model: LocationPoint.self)
 					}
 				}
 				
@@ -85,18 +66,15 @@ struct DebuggingView: View {
 					NavigationLink("Activities: \(activities.count)") {
 						ActivitiesListView()
 					}
-					
 					Button("Clear Activities") {
-						for activity in activities {
-							modelContext.delete(activity)
-						}
+						try? modelContext.delete(model: ActivityEvent.self)
 					}
 				}
 				
 				Button("Always Permission") {
 					locationManager.requestAlwaysAuthorization()
 				}
-				.disabled(locationManager.authorizationStatusText == "Always" ? true : false)
+				.disabled(locationManager.authStatus == .authorizedAlways)
 			}
 			.padding()
 			.navigationTitle("Debugging")
@@ -108,9 +86,3 @@ struct DebuggingView: View {
 		}
 	}
 }
-
-
-
-//#Preview {
-//	DebuggingView()
-//}
